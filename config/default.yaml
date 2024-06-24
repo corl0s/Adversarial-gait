@@ -1,8 +1,8 @@
 data_cfg:
   dataset_name: CASIA-B
-  dataset_root: C:\Vishnu\summer_research\resnet_direction\Adversarial_gait\data\CASIA-B-pkl
+  dataset_root: /home/cs21b1043/vishnu/Adversarial_gait/data/CASIA-B-pkl
   num_workers: 1
-  dataset_partition: C:\Vishnu\summer_research\resnet_direction\Adversarial_gait\config\casia_b.json
+  dataset_partition: /home/cs21b1043/vishnu/Adversarial_gait/config/casia_b.json
   remove_no_gallery: false
   cache: false
   test_dataset_name: CASIA-B

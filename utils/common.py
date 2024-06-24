@@ -110,6 +110,14 @@ def ddp_all_gather(features, dim=0, requires_grad=True):
     # feature = torch.cat(feature_list, dim=dim)
     return features
 
+# class DDPPassthrough(DDP):
+#     def __getattr__(self, name):
+#         try:
+#             return super().__getattr__(name)
+#         except AttributeError:
+#             return getattr(self.module, name)
+
+
 def get_ddp_module(module, find_unused_parameters=False, **kwargs):
     # if len(list(module.parameters())) == 0:
     #     # for the case that loss module has not parameters.
@@ -142,7 +150,7 @@ def MergeCfgsDict(src, dst):
 def config_loader(path):
     with open(path, 'r') as stream:
         src_cfgs = yaml.safe_load(stream)
-    with open("C:/Vishnu/summer_research/resnet_direction/Adversarial_gait/config/default.yaml", 'r') as stream:
+    with open("/home/cs21b1043/vishnu/Adversarial_gait/config/default.yaml", 'r') as stream:
         dst_cfgs = yaml.safe_load(stream)
     MergeCfgsDict(src_cfgs, dst_cfgs)
     return dst_cfgs
@@ -164,3 +172,9 @@ def init_seeds(seed=0, cuda_deterministic=True):
     else:  # faster, less reproducible
         torch.backends.cudnn.deterministic = False
         torch.backends.cudnn.benchmark = True
+        
+        
+
+def mkdir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)

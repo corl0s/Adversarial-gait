@@ -4,6 +4,10 @@ import torch
 import torch.nn as nn
 from modeling import models
 from utils import config_loader, init_seeds, params_count, get_msg_mgr
+import torch.distributed as dist
+
+# Initialize the process group
+# dist.init_process_group(backend='gloo', init_method='env://')
 
 parser = argparse.ArgumentParser(description='Main program for opengait.')
 parser.add_argument('--cfgs', type=str, default='config/default.yaml', help="path of config file")

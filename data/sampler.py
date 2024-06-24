@@ -23,8 +23,11 @@ class TripletSampler(tordata.sampler.Sampler):
     def __iter__(self):
         while True:
             sample_indices = []
+            # pid_list = sync_random_sample_list(
+                # self.dataset.label_set, self.batch_size[0])
             pid_list = sync_random_sample_list(
-                self.dataset.label_set, self.batch_size[0])
+                self.dataset.views_set, self.batch_size[0]) # for view
+                
 
             for pid in pid_list:
                 indices = self.dataset.indices_dict[pid]
@@ -90,12 +93,12 @@ class InferenceSampler(tordata.sampler.Sampler):
         self.size = len(dataset)
         indices = list(range(self.size))
 
-        world_size = dist.get_world_size()
-        rank = dist.get_rank()
+        # world_size = dist.get_world_size()
+        # rank = dist.get_rank()
 
-        if batch_size % world_size != 0:
-            raise ValueError("World size ({}) is not divisible by batch_size ({})".format(
-                world_size, batch_size))
+        # if batch_size % world_size != 0:
+        #     raise ValueError("World size ({}) is not divisible by batch_size ({})".format(
+        #         world_size, batch_size))
 
         if batch_size != 1:
             complement_size = math.ceil(self.size / batch_size) * \
@@ -103,14 +106,20 @@ class InferenceSampler(tordata.sampler.Sampler):
             indices += indices[:(complement_size - self.size)]
             self.size = complement_size
 
-        batch_size_per_rank = int(self.batch_size / world_size)
-        indx_batch_per_rank = []
+        # batch_size_per_rank = int(self.batch_size / world_size)
+        # indx_batch_per_rank = []
 
-        for i in range(int(self.size / batch_size_per_rank)):
-            indx_batch_per_rank.append(
-                indices[i*batch_size_per_rank:(i+1)*batch_size_per_rank])
+        # for i in range(int(self.size / batch_size_per_rank)):
+        #     indx_batch_per_rank.append(
+        #         indices[i*batch_size_per_rank:(i+1)*batch_size_per_rank])
 
-        self.idx_batch_this_rank = indx_batch_per_rank[rank::world_size]
+        # self.idx_batch_this_rank = indx_batch_per_rank[rank::world_size]
+        
+        batch_size_per_rank = self.batch_size
+        self.idx_batch_this_rank = [
+            indices[i*batch_size_per_rank:(i+1)*batch_size_per_rank] for i in range(self.size // batch_size_per_rank)
+        ]
+        
 
     def __iter__(self):
         yield from self.idx_batch_this_rank

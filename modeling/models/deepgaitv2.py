@@ -115,7 +115,7 @@ class DeepGaitV2(BaseModel):
 
         embed_1 = self.FCs(feat)  # [n, c, p]
         embed_2, logits = self.BNNecks(embed_1)  # [n, c, p]
-
+        # print(embed_1.shape)
         if self.inference_use_emb2:
                 embed = embed_2
         else:
@@ -131,8 +131,7 @@ class DeepGaitV2(BaseModel):
             },
             'inference_feat': {
                 'embeddings': embed
-            },
-            'extracted_features': out4
+            }
         }
 
         return retval

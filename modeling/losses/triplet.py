@@ -3,6 +3,7 @@ import torch.nn.functional as F
 
 from .base import BaseLoss, gather_and_scale_wrapper
 
+class_labels = [0, 18, 36, 54, 72, 90, 108, 126, 144, 162, 180]
 
 class TripletLoss(BaseLoss):
     def __init__(self, margin, loss_term_weight=1.0):
@@ -12,12 +13,19 @@ class TripletLoss(BaseLoss):
     @gather_and_scale_wrapper
     def forward(self, embeddings, labels):
         # embeddings: [n, c, p], label: [n]
+        # print("embeddings shape",embeddings.shape,"labels  shape",labels.shape)
         embeddings = embeddings.permute(
             2, 0, 1).contiguous().float()  # [n, c, p] -> [p, n, c]
-
+        # print("embeddings shape",embeddings.shape,"labels  shape",labels.shape)
+        labels = torch.tensor([class_labels.index(label) + 1 for label in labels])
+        # print(labels)
         ref_embed, ref_label = embeddings, labels
         dist = self.ComputeDistance(embeddings, ref_embed)  # [p, n1, n2]
+        # print(dict)
+        # for key, value in dist.items():
+        #     print(key, value)
         mean_dist = dist.mean((1, 2))  # [p]
+        
         ap_dist, an_dist = self.Convert2Triplets(labels, ref_label, dist)
         dist_diff = (ap_dist - an_dist).view(dist.size(0), -1)
         loss = F.relu(dist_diff + self.margin)
@@ -52,6 +60,7 @@ class TripletLoss(BaseLoss):
         inner = x.matmul(y.transpose(1, 2))  # [p, n_x, n_y]
         dist = x2 + y2 - 2 * inner
         dist = torch.sqrt(F.relu(dist))  # [p, n_x, n_y]
+        # print(dist)
         return dist
 
     def Convert2Triplets(self, row_labels, clo_label, dist):
@@ -61,8 +70,22 @@ class TripletLoss(BaseLoss):
         """
         matches = (row_labels.unsqueeze(1) ==
                    clo_label.unsqueeze(0)).bool()  # [n_r, n_c]
+        
+        # Count the number of True values
+        # num_true = torch.sum(matches).item()
+
+        # print("Number of True values:", num_true)
+        # print(dist.shape)
+        # print(matches.shape)
         diffenc = torch.logical_not(matches)  # [n_r, n_c]
         p, n, _ = dist.size()
+        # matches = matches.unsqueeze(0).unsqueeze(-1)
+        # print(dist[:, matches].shape)
         ap_dist = dist[:, matches].view(p, n, -1, 1)
         an_dist = dist[:, diffenc].view(p, n, 1, -1)
+        
+        # ap_dist = dist[:, matches.any(dim=0)]  # Select columns where any match exists
+        # an_dist = dist[:, diffenc.any(dim=0)]  # Select columns where no match exists
+        
         return ap_dist, an_dist
+

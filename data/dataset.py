@@ -22,9 +22,13 @@ class DataSet(tordata.Dataset):
         self.types_set = sorted(list(set(self.types_list)))
         self.views_set = sorted(list(set(self.views_list)))
         self.seqs_data = [None] * len(self)
-        self.indices_dict = {label: [] for label in self.label_set}
+        # self.indices_dict = {label: [] for label in self.label_set}
+        self.indices_dict = {label: [] for label in self.views_set} # for View
+        # for i, seq_info in enumerate(self.seqs_info):
+        #     self.indices_dict[seq_info[0]].append(i)
+        
         for i, seq_info in enumerate(self.seqs_info):
-            self.indices_dict[seq_info[0]].append(i)
+            self.indices_dict[seq_info[2]].append(i) # for view
         if self.cache:
             self.__load_all_data()
 

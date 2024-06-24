@@ -1,6 +1,9 @@
 import torch.nn.functional as F
-
+import torch
 from .base import BaseLoss
+
+class_labels = [0, 18, 36, 54, 72, 90, 108, 126, 144, 162, 180]
+
 
 
 class CrossEntropyLoss(BaseLoss):
@@ -16,9 +19,13 @@ class CrossEntropyLoss(BaseLoss):
             logits: [n, c, p]
             labels: [n]
         """
+        # print(labels.shape)
         n, c, p = logits.size()
         logits = logits.float()
-        labels = labels.unsqueeze(1)
+        # labels = labels.unsqueeze(1)
+        labels = torch.tensor([class_labels.index(label) for label in labels]).unsqueeze(1) # Convert labels to indices
+        labels = labels.to(logits.device)
+        
         if self.label_smooth:
             loss = F.cross_entropy(
                 logits*self.scale, labels.repeat(1, p), label_smoothing=self.eps)
